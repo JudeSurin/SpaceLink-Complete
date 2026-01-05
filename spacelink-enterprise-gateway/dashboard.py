@@ -16,29 +16,29 @@ import os
 import numpy as np
 
 # ============================================================================
-# Configuration
+# Page Configuration - MUST BE FIRST
 # ============================================================================
 
-# API Base URL - can be overridden via environment variable or Streamlit secrets
-try:
-    # Try to get from Streamlit secrets first (for Streamlit Cloud)
-    if hasattr(st, 'secrets') and st.secrets and 'API_BASE_URL' in st.secrets:
-        API_BASE = st.secrets['API_BASE_URL']
-    else:
-        API_BASE = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")
-except:
-    API_BASE = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")
-
-DEFAULT_USERNAME = os.getenv("DEFAULT_USERNAME", "enterprise_admin")
-DEFAULT_PASSWORD = os.getenv("DEFAULT_PASSWORD", "admin123")
-
-# Page configuration
 st.set_page_config(
     page_title="SpaceLink Enterprise Gateway",
     page_icon="🛰️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# ============================================================================
+# Configuration
+# ============================================================================
+
+# API Base URL - can be overridden via environment variable or Streamlit secrets
+try:
+    # Try to get from Streamlit secrets first (for Streamlit Cloud)
+    API_BASE = st.secrets.get('API_BASE_URL', os.getenv("API_BASE_URL", "http://127.0.0.1:8000"))
+except:
+    API_BASE = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")
+
+DEFAULT_USERNAME = os.getenv("DEFAULT_USERNAME", "enterprise_admin")
+DEFAULT_PASSWORD = os.getenv("DEFAULT_PASSWORD", "admin123")
 
 # Custom CSS for better styling
 st.markdown("""
@@ -240,19 +240,7 @@ def calculate_health_status(signal: float, latency: float, packet_loss: float) -
 def show_demo_mode():
     """Display professional demo mode with sample data"""
     
-    st.error(f"⚠️ **Demo Mode** - API Gateway not available at `{API_BASE}`")
-    st.info("""
-    **This is a frontend-only demo.** The dashboard is working correctly, but the backend API is not deployed.
-    
-    **To see live data, you would need to:**
-    1. Deploy the SpaceLink API Gateway (FastAPI backend)
-    2. Set the `SPACELINK_API_URL` environment variable in Streamlit Cloud settings
-    3. Or run locally: `uvicorn app.main:app --reload` from the `api-gateway/` directory
-    
-    **For now, enjoy exploring the UI and sample visualizations!**
-    
-    **GitHub Repository:** [github.com/JudeSurin/SpaceLink-Complete](https://github.com/JudeSurin/SpaceLink-Complete)
-    """)
+    st.warning("⚠️ **Demo Mode** - Showing sample data (API not connected)")
     
     st.markdown("---")
     st.markdown("## 📊 Dashboard Preview (Sample Data)")
