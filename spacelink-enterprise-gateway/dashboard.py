@@ -12,14 +12,24 @@ import plotly.graph_objects as go
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional
 import time
+import os
 
 # ============================================================================
 # Configuration
 # ============================================================================
 
-API_BASE = "http://127.0.0.1:8000"
-DEFAULT_USERNAME = "enterprise_admin"
-DEFAULT_PASSWORD = "admin123"
+# API Base URL - can be overridden via environment variable or Streamlit secrets
+try:
+    # Try to get from Streamlit secrets first (for Streamlit Cloud)
+    if hasattr(st, 'secrets') and st.secrets and 'API_BASE_URL' in st.secrets:
+        API_BASE = st.secrets['API_BASE_URL']
+    else:
+        API_BASE = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")
+except:
+    API_BASE = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")
+
+DEFAULT_USERNAME = os.getenv("DEFAULT_USERNAME", "enterprise_admin")
+DEFAULT_PASSWORD = os.getenv("DEFAULT_PASSWORD", "admin123")
 
 # Page configuration
 st.set_page_config(
