@@ -1,4 +1,4 @@
-# SpaceLink Enterprise Gateway
+# SpaceLink 
 
 **Enterprise-Grade Network Telemetry & API Integration Platform**
 
