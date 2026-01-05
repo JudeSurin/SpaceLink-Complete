@@ -13,6 +13,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional
 import time
 import os
+import numpy as np
 
 # ============================================================================
 # Configuration
@@ -88,7 +89,6 @@ st.markdown("""
 # API Client Functions
 # ============================================================================
 
-@st.cache_data(ttl=300)
 def authenticate() -> Optional[str]:
     """Authenticate and get access token"""
     try:
@@ -98,12 +98,18 @@ def authenticate() -> Optional[str]:
                 "username": DEFAULT_USERNAME,
                 "password": DEFAULT_PASSWORD
             },
-            timeout=5
+            timeout=3
         )
         response.raise_for_status()
         return response.json()["access_token"]
-    except Exception as e:
-        st.error(f"Authentication failed: {e}")
+    except requests.exceptions.ConnectionError:
+        # Connection refused - API not available
+        return None
+    except requests.exceptions.Timeout:
+        # Timeout - API not responding
+        return None
+    except Exception:
+        # Other errors - silently return None for demo mode
         return None
 
 
@@ -228,6 +234,207 @@ def calculate_health_status(signal: float, latency: float, packet_loss: float) -
 
 
 # ============================================================================
+# Demo Mode Function
+# ============================================================================
+
+def show_demo_mode():
+    """Display professional demo mode with sample data"""
+    
+    st.error(f"⚠️ **Demo Mode** - API Gateway not available at `{API_BASE}`")
+    st.info("""
+    **This is a frontend-only demo.** The dashboard is working correctly, but the backend API is not deployed.
+    
+    **To see live data, you would need to:**
+    1. Deploy the SpaceLink API Gateway (FastAPI backend)
+    2. Set the `SPACELINK_API_URL` environment variable in Streamlit Cloud settings
+    3. Or run locally: `uvicorn app.main:app --reload` from the `api-gateway/` directory
+    
+    **For now, enjoy exploring the UI and sample visualizations!**
+    
+    **GitHub Repository:** [github.com/JudeSurin/SpaceLink-Complete](https://github.com/JudeSurin/SpaceLink-Complete)
+    """)
+    
+    st.markdown("---")
+    st.markdown("## 📊 Dashboard Preview (Sample Data)")
+    
+    # Sample metrics
+    st.markdown("### 🎯 Sample Device Performance")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("Total Devices", "12", delta="2 new")
+    with col2:
+        st.metric("Active Devices", "10", delta="83%")
+    with col3:
+        st.metric("Avg Latency", "45.2 ms", delta="-5.3 ms")
+    with col4:
+        st.metric("Avg Throughput", "125 Mbps", delta="+12 Mbps")
+    
+    st.markdown("---")
+    
+    # Sample charts
+    st.markdown("### 📈 Sample Telemetry Trends")
+    
+    # Generate sample data
+    np.random.seed(42)  # For consistent sample data
+    sample_data = pd.DataFrame({
+        'Time': pd.date_range(start='2024-01-01', periods=48, freq='H'),
+        'Latency (ms)': 45 + np.random.randn(48) * 10,
+        'Packet Loss (%)': np.abs(np.random.randn(48) * 0.5),
+        'Signal Strength (dBm)': -70 + np.random.randn(48) * 5,
+        'Throughput (Mbps)': 120 + np.random.randn(48) * 15
+    })
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        fig = px.line(sample_data, x='Time', y='Latency (ms)', 
+                     title='Network Latency (Sample Data)', 
+                     labels={'Latency (ms)': 'Latency (ms)'})
+        fig.add_hline(y=100, line_dash="dash", line_color="red", 
+                     annotation_text="SLA Target: 100ms")
+        st.plotly_chart(fig, use_container_width=True)
+    
+    with col2:
+        fig2 = px.line(sample_data, x='Time', y='Signal Strength (dBm)', 
+                      title='Signal Strength (Sample Data)',
+                      labels={'Signal Strength (dBm)': 'Signal (dBm)'})
+        st.plotly_chart(fig2, use_container_width=True)
+    
+    col3, col4 = st.columns(2)
+    
+    with col3:
+        fig3 = px.line(sample_data, x='Time', y='Packet Loss (%)', 
+                      title='Packet Loss (Sample Data)',
+                      labels={'Packet Loss (%)': 'Packet Loss (%)'})
+        st.plotly_chart(fig3, use_container_width=True)
+    
+    with col4:
+        fig4 = px.line(sample_data, x='Time', y='Throughput (Mbps)', 
+                      title='Network Throughput (Sample Data)',
+                      labels={'Throughput (Mbps)': 'Throughput (Mbps)'})
+        st.plotly_chart(fig4, use_container_width=True)
+    
+    st.markdown("---")
+    
+    # Sample device status table
+    st.markdown("### 🖥️ Sample Device Status")
+    
+    sample_devices = pd.DataFrame({
+        'Device ID': ['sat-001', 'sat-002', 'mobile-001', 'iot-001', 'sat-003'],
+        'Status': ['active', 'active', 'degraded', 'active', 'offline'],
+        'Signal (dBm)': [-65.2, -68.5, -78.1, -70.3, -92.5],
+        'Latency (ms)': [42.3, 45.1, 98.7, 52.4, None],
+        'Packet Loss (%)': [0.1, 0.2, 2.3, 0.4, None],
+        'Throughput (Mbps)': [145.2, 138.5, 85.3, 120.7, None],
+        'Last Seen': ['2 min ago', '1 min ago', '5 min ago', '3 min ago', '2 hours ago']
+    })
+    
+    st.dataframe(sample_devices, use_container_width=True, hide_index=True)
+    
+    st.markdown("---")
+    
+    # Feature highlights
+    st.markdown("### ✨ Features When Connected to API")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("""
+        **Real-Time Monitoring:**
+        - ✅ Live fleet monitoring with auto-refresh
+        - ✅ Device health tracking (satellite/mobile/IoT)
+        - ✅ Multi-tenant data isolation
+        - ✅ Historical performance analysis
+        - ✅ Custom time range selection (1h - 7 days)
+        """)
+    
+    with col2:
+        st.markdown("""
+        **Advanced Analytics:**
+        - ✅ Network SLA compliance monitoring
+        - ✅ Interactive drill-down capabilities
+        - ✅ Correlation analysis
+        - ✅ Status distribution visualization
+        - ✅ Real-time alerting system
+        """)
+    
+    st.markdown("---")
+    
+    # Tech stack
+    st.markdown("### 🛠️ Technology Stack")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown("""
+        **Frontend:**
+        - Streamlit 1.39
+        - Plotly 5.24
+        - Pandas 2.2
+        """)
+    
+    with col2:
+        st.markdown("""
+        **Backend:**
+        - FastAPI 0.115
+        - SQLAlchemy
+        - OAuth2/JWT Auth
+        """)
+    
+    with col3:
+        st.markdown("""
+        **Data Collection:**
+        - Real ping tests
+        - Multi-device support
+        - Docker deployment
+        """)
+    
+    st.markdown("---")
+    
+    # Architecture
+    st.markdown("### 🏗️ System Architecture")
+    
+    st.markdown("""
+    **5-Layer Architecture:**
+    1. **Device Layer** - Satellite terminals, mobile units, IoT gateways
+    2. **Collection Layer** - Real telemetry agent (actual ping tests)
+    3. **API Gateway Layer** - FastAPI with OAuth2 authentication
+    4. **Data Layer** - PostgreSQL/SQLite with multi-tenant isolation
+    5. **Client Layer** - Streamlit dashboard, Python SDK, third-party integrations
+    
+    **Key Features:**
+    - Multi-tenant architecture with organization-based data isolation
+    - Role-based access control (Admin, Partner, Customer, ReadOnly)
+    - Real network measurements using actual ping commands
+    - SLA monitoring with automated health scoring
+    - Partner onboarding with API key management
+    """)
+    
+    st.markdown("---")
+    
+    # Footer
+    st.markdown("### 👨‍💻 About This Project")
+    
+    st.markdown("""
+    **Built by:** Jude Surin  
+    **GitHub:** [github.com/JudeSurin](https://github.com/JudeSurin)  
+    **LinkedIn:** [linkedin.com/in/judesurin](https://linkedin.com/in/judesurin)  
+    **Repository:** [github.com/JudeSurin/SpaceLink-Complete](https://github.com/JudeSurin/SpaceLink-Complete)
+    
+    This is a full-stack enterprise monitoring platform demonstrating:
+    - Real-time data visualization
+    - RESTful API design
+    - Authentication & authorization
+    - Multi-tenant architecture
+    - Production-ready deployment
+    
+    **Total Lines of Code:** 3,500+  
+    **Tech Stack:** Python, FastAPI, Streamlit, SQLAlchemy, Docker, OAuth2
+    """)
+
+
+# ============================================================================
 # Main Dashboard
 # ============================================================================
 
@@ -235,6 +442,18 @@ def main():
     # Header
     st.markdown("# 🛰️ SpaceLink Enterprise Gateway")
     st.markdown("### Real-Time Network Telemetry & Monitoring Dashboard")
+    
+    # Check if API is available
+    try:
+        health_check = requests.get(f"{API_BASE}/health", timeout=3)
+        api_available = health_check.status_code == 200
+    except:
+        api_available = False
+    
+    # If API not available, show demo mode
+    if not api_available:
+        show_demo_mode()
+        return
     
     # Authenticate
     token = authenticate()
