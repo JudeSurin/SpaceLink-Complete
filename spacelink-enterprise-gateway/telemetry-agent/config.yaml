@@ -1,0 +1,27 @@
+# SpaceLink Telemetry Agent Configuration
+
+gateway:
+  # API Gateway endpoint
+  url: "http://127.0.0.1:8000/v1/telemetry/send"
+
+device:
+  # Device authentication
+  api_key: "ok_device_001_abc123xyz"  # Replace with your API key
+  device_id: "device-001"
+  organization: "ACME Corporation"
+
+collection:
+  # Telemetry collection interval in seconds
+  interval_seconds: 5
+
+simulation:
+  # Simulated network baseline metrics
+  base_latency_ms: 50      # Typical satellite latency
+  base_signal_dbm: -70     # Signal strength in dBm
+
+# Advanced Configuration (Optional)
+advanced:
+  retry_attempts: 3
+  retry_delay_seconds: 5
+  batch_size: 10           # For batch mode (future feature)
+  enable_compression: false

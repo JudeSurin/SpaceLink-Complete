@@ -1,0 +1,58 @@
+name: SpaceLink CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+    
+    - name: Install dependencies
+      run: |
+        cd api-gateway
+        pip install -r requirements.txt
+    
+    - name: Run tests
+      run: |
+        cd api-gateway
+        python -m pytest tests/
+    
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Build Docker images
+      run: |
+        docker-compose build
+    
+    - name: Run integration tests
+      run: |
+        docker-compose up -d
+        sleep 10
+        curl http://localhost:8000/health
+        docker-compose down
+  
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Deploy to production
+      run: |
+        echo "Deploy to production server"
+        # Add deployment steps here

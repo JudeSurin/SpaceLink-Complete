@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # SpaceLink API Gateway
+  api-gateway:
+    build: ./api-gateway
+    container_name: spacelink-gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite:///./spacelink.db
+    volumes:
+      - ./data:/app/data
+    networks:
+      - spacelink-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Telemetry Agent (Device Simulator)
+  telemetry-agent-1:
+    build: ./telemetry-agent
+    container_name: spacelink-agent-1
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    environment:
+      - DEVICE_ID=device-001
+      - GATEWAY_URL=http://api-gateway:8000/v1/telemetry/send
+    networks:
+      - spacelink-network
+    restart: unless-stopped
+
+  # Additional agent for multi-device simulation
+  telemetry-agent-2:
+    build: ./telemetry-agent
+    container_name: spacelink-agent-2
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    environment:
+      - DEVICE_ID=device-002
+      - GATEWAY_URL=http://api-gateway:8000/v1/telemetry/send
+    networks:
+      - spacelink-network
+    restart: unless-stopped
+
+networks:
+  spacelink-network:
+    driver: bridge
+
+volumes:
+  data:
+    driver: local
