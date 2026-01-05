@@ -240,7 +240,7 @@ def calculate_health_status(signal: float, latency: float, packet_loss: float) -
 def show_demo_mode():
     """Display professional demo mode with sample data"""
     
-    st.warning("⚠️ **Demo Mode** - Showing sample data (API not connected)")
+    st.warning("**Demo Mode**")
     
     st.markdown("---")
     st.markdown("## 📊 Dashboard Preview (Sample Data)")
